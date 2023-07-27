@@ -204,8 +204,6 @@ struct ConvNetImpl : public torch::nn::Module
 
 		x = torch::relu(torch::avg_pool2d(x, 2));
 
-		std::cout << x.numel() << std::endl;
-
 		return x.numel();
 	}
 

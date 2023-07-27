@@ -1,6 +1,5 @@
 #include "model.h"
 #include  "data_set.h"
-#include "utils.h"
 
 
 int main()
@@ -37,13 +36,9 @@ int main()
 	torch::load(model, path_NN);
 	std::cout << "Model load" << std::endl;
 
-	//std::cout << "Test error: " << classification_accuracy(test_data_set, model, true) << std::endl;
-	//std::cout << "Val error: " << classification_accuracy(val_data_set, model) << std::endl;
-	//std::cout << "Train error: " << classification_accuracy(train_data_set, model) << std::endl;
-
-	//verification_error_CNN(error_file_csv);
-	//verification_single_data_set(single_file_csv);
-	//verification_data_set(test1_file_csv);
+	std::cout << "Test error: " << classification_accuracy(test_data_set, model) << std::endl;
+	std::cout << "Val error: " << classification_accuracy(val_data_set, model) << std::endl;
+	std::cout << "Train error: " << classification_accuracy(train_data_set, model) << std::endl;
 
 	return 0;
 }
