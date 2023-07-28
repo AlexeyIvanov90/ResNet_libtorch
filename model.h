@@ -113,19 +113,19 @@ struct ConvNetImpl : public torch::nn::Module
 		x = torch::relu(conv64_2(x));
 
 		res.index({ torch::indexing::Slice(),torch::indexing::Slice(), torch::indexing::Slice(2, res.sizes()[2] - 2), torch::indexing::Slice(2, res.sizes()[3] - 2) }) += x;
-		x = torch::relu(res.clone());
+		x = res.clone();
 
 		x = torch::relu(conv64_3(x));
 		x = torch::relu(conv64_4(x));
 
 		res.index({ torch::indexing::Slice(),torch::indexing::Slice(), torch::indexing::Slice(2, res.sizes()[2] - 2), torch::indexing::Slice(2, res.sizes()[3] - 2) }) += x;
-		x = torch::relu(res.clone());
+		x = res.clone();
 
 		x = torch::relu(conv64_5(x));
 		x = torch::relu(conv64_6(x));
 
 		res.index({ torch::indexing::Slice(),torch::indexing::Slice(), torch::indexing::Slice(2, res.sizes()[2] - 2), torch::indexing::Slice(2, res.sizes()[3] - 2) }) += x;
-		x = torch::relu(res.clone());
+		x = res.clone();
 
 		res = conv64_128(res);
 		//---------------------------------------------------------------------------------------------------------------------
@@ -133,25 +133,25 @@ struct ConvNetImpl : public torch::nn::Module
 		x = torch::relu(conv128_2(x));
 
 		res.index({ torch::indexing::Slice(),torch::indexing::Slice(), torch::indexing::Slice(2, res.sizes()[2] - 2), torch::indexing::Slice(2, res.sizes()[3] - 2) }) += x;
-		x = torch::relu(res.clone());
+		x = res.clone();
 
 		x = torch::relu(conv128_3(x));
 		x = torch::relu(conv128_4(x));
 
 		res.index({ torch::indexing::Slice(),torch::indexing::Slice(), torch::indexing::Slice(2, res.sizes()[2] - 2), torch::indexing::Slice(2, res.sizes()[3] - 2) }) += x;
-		x = torch::relu(res.clone());
+		x = res.clone();
 
 		x = torch::relu(conv128_5(x));
 		x = torch::relu(conv128_6(x));
 
 		res.index({ torch::indexing::Slice(),torch::indexing::Slice(), torch::indexing::Slice(2, res.sizes()[2] - 2), torch::indexing::Slice(2, res.sizes()[3] - 2) }) += x;
-		x = torch::relu(res.clone());
+		x = res.clone();
 
 		x = torch::relu(conv128_7(x));
 		x = torch::relu(conv128_8(x));
 
 		res.index({ torch::indexing::Slice(),torch::indexing::Slice(), torch::indexing::Slice(2, res.sizes()[2] - 2), torch::indexing::Slice(2, res.sizes()[3] - 2) }) += x;
-		x = torch::relu(res.clone());
+		x = res.clone();
 
 		res = conv128_256(res);
 		//---------------------------------------------------------------------------------------------------------------------
@@ -159,37 +159,37 @@ struct ConvNetImpl : public torch::nn::Module
 		x = torch::relu(conv256_2(x));
 
 		res.index({ torch::indexing::Slice(),torch::indexing::Slice(), torch::indexing::Slice(2, res.sizes()[2] - 2), torch::indexing::Slice(2, res.sizes()[3] - 2) }) += x;
-		x = torch::relu(res.clone());
+		x = res.clone();
 
 		x = torch::relu(conv256_3(x));
 		x = torch::relu(conv256_4(x));
 
 		res.index({ torch::indexing::Slice(),torch::indexing::Slice(), torch::indexing::Slice(2, res.sizes()[2] - 2), torch::indexing::Slice(2, res.sizes()[3] - 2) }) += x;
-		x = torch::relu(res.clone());
+		x = res.clone();
 
 		x = torch::relu(conv256_5(x));
 		x = torch::relu(conv256_6(x));
 
 		res.index({ torch::indexing::Slice(),torch::indexing::Slice(), torch::indexing::Slice(2, res.sizes()[2] - 2), torch::indexing::Slice(2, res.sizes()[3] - 2) }) += x;
-		x = torch::relu(res.clone());
+		x = res.clone();
 
 		x = torch::relu(conv256_7(x));
 		x = torch::relu(conv256_8(x));
 
 		res.index({ torch::indexing::Slice(),torch::indexing::Slice(), torch::indexing::Slice(2, res.sizes()[2] - 2), torch::indexing::Slice(2, res.sizes()[3] - 2) }) += x;
-		x = torch::relu(res.clone());
+		x = res.clone();
 
 		x = torch::relu(conv256_9(x));
 		x = torch::relu(conv256_10(x));
 
 		res.index({ torch::indexing::Slice(),torch::indexing::Slice(), torch::indexing::Slice(2, res.sizes()[2] - 2), torch::indexing::Slice(2, res.sizes()[3] - 2) }) += x;
-		x = torch::relu(res.clone());
+		x = res.clone();
 
 		x = torch::relu(conv256_11(x));
 		x = torch::relu(conv256_12(x));
 
 		res.index({ torch::indexing::Slice(),torch::indexing::Slice(), torch::indexing::Slice(2, res.sizes()[2] - 2), torch::indexing::Slice(2, res.sizes()[3] - 2) }) += x;
-		x = torch::relu(res.clone());
+		x = res.clone();
 
 		res = conv256_512(res);
 		//---------------------------------------------------------------------------------------------------------------------
@@ -197,19 +197,19 @@ struct ConvNetImpl : public torch::nn::Module
 		x = torch::relu(conv512_2(x));
 
 		res.index({ torch::indexing::Slice(),torch::indexing::Slice(), torch::indexing::Slice(2, res.sizes()[2] - 2), torch::indexing::Slice(2, res.sizes()[3] - 2) }) += x;
-		x = torch::relu(res.clone());
+		x = res.clone();
 
 		x = torch::relu(conv512_3(x));
 		x = torch::relu(conv512_4(x));
 
 		res.index({ torch::indexing::Slice(),torch::indexing::Slice(), torch::indexing::Slice(2, res.sizes()[2] - 2), torch::indexing::Slice(2, res.sizes()[3] - 2) }) += x;
-		x = torch::relu(res.clone());
+		x = res.clone();
 
 		x = torch::relu(conv512_5(x));
 		x = torch::relu(conv512_6(x));
 
 		res.index({ torch::indexing::Slice(),torch::indexing::Slice(), torch::indexing::Slice(2, res.sizes()[2] - 2), torch::indexing::Slice(2, res.sizes()[3] - 2) }) += x;
-		x = torch::relu(res.clone());
+		x = res.clone();
 		//---------------------------------------------------------------------------------------------------------------------
 		x = torch::relu(torch::avg_pool2d(x, 2));
 

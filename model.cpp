@@ -62,12 +62,12 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ConvNet &
 		OptionsData);
 
 
-	//torch::optim::Adam optimizer(model->parameters(), torch::optim::AdamOptions(1e-3));
+	torch::optim::Adam optimizer(model->parameters(), torch::optim::AdamOptions(1e-3));
 
-	torch::optim::SGD optimizer{ model->parameters(),
-							torch::optim::SGDOptions(/*lr=*/(1e-1))
+	/*torch::optim::SGD optimizer{ model->parameters(),
+							torch::optim::SGDOptions((1e-1))
 								.momentum(0.9)
-								.weight_decay(1e-4) };
+								.weight_decay(1e-4) };*/
 
 
 	int dataset_size = train_data_set.size().value();
