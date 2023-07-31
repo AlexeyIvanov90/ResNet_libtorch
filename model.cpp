@@ -64,12 +64,6 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ConvNet &
 
 	torch::optim::Adam optimizer(model->parameters(), torch::optim::AdamOptions(1e-3));
 
-	/*torch::optim::SGD optimizer{ model->parameters(),
-							torch::optim::SGDOptions((1e-1))
-								.momentum(0.9)
-								.weight_decay(1e-4) };*/
-
-
 	int dataset_size = train_data_set.size().value();
 	float best_mse = std::numeric_limits<float>::max();
 
@@ -97,7 +91,12 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ConvNet &
 			optimizer.zero_grad();
 			auto output = model(imgs);
 
-			auto loss = torch::nll_loss(output, labels);
+			std::cout << output << std::endl;
+
+			//auto loss = torch::nll_loss(output, labels);
+			auto loss = torch::cross_entropy_loss(output, labels);
+
+
 
 			loss.backward();
 			optimizer.step();

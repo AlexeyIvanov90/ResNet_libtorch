@@ -20,7 +20,7 @@ int main()
 		device = torch::kCUDA;
 	}
 
-	//device = torch::kCPU;
+	device = torch::kCPU;
 
 	CustomDataset train_data_set(train_file_csv);
 	CustomDataset val_data_set(val_file_csv);
