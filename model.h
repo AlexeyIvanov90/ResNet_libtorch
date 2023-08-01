@@ -162,6 +162,8 @@ struct ConvNetImpl : public torch::nn::Module
 		res.index({ torch::indexing::Slice(),torch::indexing::Slice(), torch::indexing::Slice(2, res.sizes()[2] - 2), torch::indexing::Slice(2, res.sizes()[3] - 2) }) += x;
 		x = res.clone();
 
+		std::cout << res.sizes() << std::endl;
+
 		res = conv256_512(res);
 		//-------------------------------------------------------------------------------------------
 		x = torch::relu(conv512_1(x));

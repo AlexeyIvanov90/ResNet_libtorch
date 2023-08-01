@@ -20,7 +20,7 @@ int main()
 		device = torch::kCUDA;
 	}
 
-	device = torch::kCPU;
+	//device = torch::kCPU;
 
 	CustomDataset train_data_set(train_file_csv);
 	CustomDataset val_data_set(val_file_csv);
@@ -30,6 +30,8 @@ int main()
 
 	torch::data::DataLoaderOptions OptionsData;
 	OptionsData.batch_size(64).workers(12);
+
+	torch::load(model, path_NN);
 
 	train(train_data_set, val_data_set, model, epochs, OptionsData);
 
