@@ -54,22 +54,6 @@ torch::Tensor BasicBlock::forward(torch::Tensor x) {
 const int BasicBlock::expansion = 1;
 
 
-//ResNet::ResNet()
-//	: conv1(conv_options(1, 2, 3, 3, 1)),
-//	//bn1(1),
-//	conv2(conv_options(1, 2, 3, 1, 1)),
-//	bn2(1),
-//	fc(10,2)
-//{
-//	register_module("conv1", conv1);
-//	register_module("bn1", bn1);
-//	//register_module("conv2", conv2);
-//	//register_module("bn2", bn2);
-//	register_module("fc", fc);
-//	//register_module("downsample", layer1);
-//
-//}
-
 ResNet::ResNet(int64_t *layers, int64_t num_classes)
 	: conv1(conv_options(3, 64, 7, 2, 3)),
 	bn1(64),
@@ -108,8 +92,6 @@ torch::nn::Sequential ResNet::_make_layer(int64_t planes, int64_t blocks, int64_
 
 
 
-
-
 /*
 torch::Tensor ResNet::forward(torch::Tensor x) {
 
@@ -129,25 +111,6 @@ torch::Tensor ResNet::forward(torch::Tensor x) {
 
 	return x;
 }
-
-torch::nn::Sequential ResNet::_make_layer(int64_t planes, int64_t blocks, int64_t stride) {
-	torch::nn::Sequential downsample;
-	if (stride != 1 || inplanes != planes * BasicBlock::expansion) {
-		downsample = torch::nn::Sequential(
-			torch::nn::Conv2d(conv_options(inplanes, planes * BasicBlock::expansion, 1, stride)),
-			torch::nn::BatchNorm2d(planes * BasicBlock::expansion)
-		);
-	}
-	torch::nn::Sequential layers;
-	layers->push_back(BasicBlock(inplanes, planes, stride, downsample));
-	inplanes = planes * BasicBlock::expansion;
-	for (int64_t i = 0; i < blocks; i++) {
-		layers->push_back(BasicBlock(inplanes, planes));
-	}
-
-	return layers;
-}
-
 */
 
 
