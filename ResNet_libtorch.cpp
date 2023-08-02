@@ -12,7 +12,7 @@ int main()
 
 	std::string path_NN = "../best_model.pt";
 
-	auto epochs = 1000000;
+	auto epochs = 1;
 	auto device = torch::kCPU;
 
 	if (torch::cuda::is_available()) {
@@ -30,8 +30,6 @@ int main()
 
 	torch::data::DataLoaderOptions OptionsData;
 	OptionsData.batch_size(64).workers(12);
-
-	torch::load(model, path_NN);
 
 	train(train_data_set, val_data_set, model, epochs, OptionsData);
 

@@ -5,10 +5,73 @@
 #include "data_set.h"
 
 
+torch::nn::Conv2dOptions conv_options(int64_t in_planes, int64_t out_planes, int64_t kerner_size,
+	int64_t stride = 1, int64_t padding = 0, bool bias = false);
+
+
+struct BasicBlock : torch::nn::Module {
+	static const int expansion;
+	int64_t stride;
+	torch::nn::Conv2d conv1;
+	torch::nn::BatchNorm2d bn1;
+	torch::nn::Conv2d conv2;
+	torch::nn::BatchNorm2d bn2;
+	torch::nn::Sequential downsample;
+
+	BasicBlock(int64_t inplanes, int64_t planes, int64_t stride_ = 1, torch::nn::Sequential downsample_ = torch::nn::Sequential());
+	torch::Tensor forward(torch::Tensor x);
+};
+
+
+struct ResNet : torch::nn::Module {
+	int64_t inplanes = 64;
+	torch::nn::Conv2d conv1;
+	torch::nn::BatchNorm2d bn1;
+	torch::nn::Sequential layer1;
+	torch::nn::Sequential layer2;
+	torch::nn::Sequential layer3;
+	torch::nn::Sequential layer4;
+	torch::nn::Linear fc;
+
+	ResNet::ResNet(int64_t *layers, int64_t num_classes = 1000);
+
+private:
+	torch::nn::Sequential _make_layer(int64_t planes, int64_t blocks, int64_t stride = 1);
+};
+
+
+//struct ResNet : torch::nn::Module {
+//	int64_t inplanes = 64;
+//	torch::nn::Conv2d conv1;
+//	torch::nn::BatchNorm2d bn1;
+//	//torch::nn::Sequential layer1;
+//	//torch::nn::Sequential layer2;
+//	//torch::nn::Sequential layer3;
+//	//torch::nn::Sequential layer4;
+//	torch::nn::Linear fc;
+//
+//	ResNet(torch::IntList layers, torch::IntList img_size, int64_t num_classes = 2);
+//	torch::Tensor forward(torch::Tensor x);
+//
+//	//ResNet(torch::IntList layers, torch::IntList img_size, int64_t num_classes = 2);
+//	//torch::Tensor forward(torch::Tensor x);
+//
+//private:
+//	torch::nn::Sequential _make_layer(int64_t planes, int64_t blocks, int64_t stride = 1);
+//};
+
+
+//ResNet resnet18(torch::IntList img_size);
+//ResNet resnet34(torch::IntList img_size);
+
+
+
+
+
 struct ConvNetImpl : public torch::nn::Module 
 {
 	ConvNetImpl(int64_t channels, int64_t height, int64_t width)
-		: conv1(torch::nn::Conv2dOptions(3 /*input channels*/, 64 /*output channels*/, 7 /*kernel size*/).stride(1)),
+		: conv1(torch::nn::Conv2dOptions(3 , 64 , 7 ).stride(1)),//3 - input channels, 64 - output channels, 7 - kernel size
 
 		conv64_1(torch::nn::Conv2dOptions(64, 64, 3).stride(1)),
 		bn2d_64_1(torch::nn::BatchNorm2d(64)),
@@ -186,7 +249,7 @@ struct ConvNetImpl : public torch::nn::Module
 
 		x = x.view({ -1, n });
 
-		x = torch::log_softmax(lin1(x), 1/*dim*/);
+		x = torch::log_softmax(lin1(x), 1);//1- dim
 
 		return x;
 	};
@@ -278,6 +341,7 @@ struct ConvNetImpl : public torch::nn::Module
 
 
 TORCH_MODULE(ConvNet);
+//TORCH_MODULE(ResNet);
 
 
 torch::Tensor classification(torch::Tensor img_tensor, ConvNet model);
