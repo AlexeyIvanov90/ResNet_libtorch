@@ -96,6 +96,12 @@ torch::nn::Sequential ResNet::_make_layer(int64_t planes, int64_t blocks, int64_
 			torch::nn::BatchNorm2d(planes * BasicBlock::expansion)
 		);
 	}
+	torch::nn::Sequential layers;
+	layers->push_back(BasicBlock(inplanes, planes, stride, downsample));
+	inplanes = planes * BasicBlock::expansion;
+	for (int64_t i = 0; i < blocks; i++) {
+		layers->push_back(BasicBlock(inplanes, planes));
+	}
 	return downsample;
 }
 
