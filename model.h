@@ -41,11 +41,8 @@ private:
 };
 
 
-//ResNet resnet18(torch::IntList img_size);
-//ResNet resnet34(torch::IntList img_size);
-
-
-
+ResNet resnet18(int64_t *img_size);
+ResNet resnet34(int64_t *img_size);
 
 
 struct ConvNetImpl : public torch::nn::Module 

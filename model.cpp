@@ -112,26 +112,18 @@ torch::Tensor ResNet::forward(torch::Tensor x) {
 }
 
 
-/*
-torch::Tensor ResNet::forward(torch::Tensor x) {
 
-	x = conv1->forward(x);
-	x = bn1->forward(x);
-	x = torch::relu(x);
-	x = torch::max_pool2d(x, 3, 2, 1);
 
-	//x = layer1->forward(x);
-	//x = layer2->forward(x);
-	//x = layer3->forward(x);
-	//x = layer4->forward(x);
-
-	x = torch::avg_pool2d(x, 7, 1);
-	x = x.view({ x.sizes()[0], -1 });
-	x = fc->forward(x);
-
-	return x;
+ResNet resnet18(int64_t *img_size) {
+	int64_t layers[] = { 2, 2, 2, 2 };
+	ResNet model(layers, img_size);
+	return model;
 }
-*/
+ResNet resnet34(int64_t *img_size) {
+	int64_t layers[] = { 3, 4, 6, 3 };
+	ResNet model(layers, img_size);
+	return model;
+}
 
 
 
