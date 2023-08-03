@@ -55,7 +55,7 @@ torch::Tensor BasicBlock::forward(torch::Tensor x) {
 const int BasicBlock::expansion = 1;
 
 
-ResNet::ResNet(int64_t *layers, int64_t num_classes)
+ResNet::ResNet(int64_t *layers, int64_t *img_size, int64_t num_classes)
 	: conv1(conv_options(3, 64, 7, 2, 3)),
 	bn1(64),
 	layer1(_make_layer(64, layers[0])),

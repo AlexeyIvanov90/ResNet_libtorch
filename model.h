@@ -33,33 +33,12 @@ struct ResNet : torch::nn::Module {
 	torch::nn::Sequential layer4;
 	torch::nn::Linear fc;
 
-	ResNet::ResNet(int64_t *layers, int64_t num_classes = 1000);
+	ResNet::ResNet(int64_t *layers, int64_t *img_size, int64_t num_classes = 1000);
 	torch::Tensor forward(torch::Tensor x);
 
 private:
 	torch::nn::Sequential _make_layer(int64_t planes, int64_t blocks, int64_t stride = 1);
 };
-
-
-//struct ResNet : torch::nn::Module {
-//	int64_t inplanes = 64;
-//	torch::nn::Conv2d conv1;
-//	torch::nn::BatchNorm2d bn1;
-//	//torch::nn::Sequential layer1;
-//	//torch::nn::Sequential layer2;
-//	//torch::nn::Sequential layer3;
-//	//torch::nn::Sequential layer4;
-//	torch::nn::Linear fc;
-//
-//	ResNet(torch::IntList layers, torch::IntList img_size, int64_t num_classes = 2);
-//	torch::Tensor forward(torch::Tensor x);
-//
-//	//ResNet(torch::IntList layers, torch::IntList img_size, int64_t num_classes = 2);
-//	//torch::Tensor forward(torch::Tensor x);
-//
-//private:
-//	torch::nn::Sequential _make_layer(int64_t planes, int64_t blocks, int64_t stride = 1);
-//};
 
 
 //ResNet resnet18(torch::IntList img_size);
