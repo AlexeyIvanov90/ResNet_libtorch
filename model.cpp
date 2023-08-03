@@ -51,6 +51,7 @@ torch::Tensor BasicBlock::forward(torch::Tensor x) {
 	return x;
 }
 
+
 const int BasicBlock::expansion = 1;
 
 
@@ -72,6 +73,7 @@ ResNet::ResNet(int64_t *layers, int64_t num_classes)
 	register_module("fc", fc);
 }
 
+
 torch::nn::Sequential ResNet::_make_layer(int64_t planes, int64_t blocks, int64_t stride) {
 	torch::nn::Sequential downsample;
 	if (stride != 1 || inplanes != planes * BasicBlock::expansion) {
@@ -90,6 +92,24 @@ torch::nn::Sequential ResNet::_make_layer(int64_t planes, int64_t blocks, int64_
 }
 
 
+torch::Tensor ResNet::forward(torch::Tensor x) {
+
+	x = conv1->forward(x);
+	x = bn1->forward(x);
+	x = torch::relu(x);
+	x = torch::max_pool2d(x, 3, 2, 1);
+
+	x = layer1->forward(x);
+	x = layer2->forward(x);
+	x = layer3->forward(x);
+	x = layer4->forward(x);
+
+	x = torch::avg_pool2d(x, 7, 1);
+	x = x.view({ x.sizes()[0], -1 });
+	x = fc->forward(x);
+
+	return x;
+}
 
 
 /*

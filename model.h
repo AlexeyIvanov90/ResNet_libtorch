@@ -34,6 +34,7 @@ struct ResNet : torch::nn::Module {
 	torch::nn::Linear fc;
 
 	ResNet::ResNet(int64_t *layers, int64_t num_classes = 1000);
+	torch::Tensor forward(torch::Tensor x);
 
 private:
 	torch::nn::Sequential _make_layer(int64_t planes, int64_t blocks, int64_t stride = 1);
