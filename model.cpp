@@ -54,7 +54,7 @@ torch::Tensor BasicBlock::forward(torch::Tensor x) {
 const int BasicBlock::expansion = 1;
 
 
-ResNet::ResNet(int64_t* layers, int64_t num_classes)
+ResNet::ResNet(at::IntArrayRef layers, at::IntArrayRef img_size, int64_t num_classes)
 	: conv1(torch::nn::Conv2dOptions(3, 64, 7).stride(1)),
 	//conv1(conv_options(3, 64, 7, 2, 3)),
 	bn1(64),
@@ -114,8 +114,8 @@ torch::nn::Sequential ResNet::_make_layer(int64_t planes, int64_t blocks, int64_
 }
 
 
-int64_t ResNet::_get_conv_output() {
-	torch::Tensor x = torch::zeros({ 1, 3, 224, 224 });
+int64_t ResNet::_get_conv_output(at::IntArrayRef img_size) {
+	torch::Tensor x = torch::zeros(img_size);
 	std::cout << x.sizes() << std::endl;
 
 	x = conv1->forward(x);
@@ -137,16 +137,16 @@ int64_t ResNet::_get_conv_output() {
 }
 
 
-ResNet resnet18() {
-	int64_t layers[] = { 2, 2, 2, 2 };
-	ResNet model(layers);
+ResNet resnet18(at::IntArrayRef img_size) {
+	at::IntArrayRef layers = { 2, 2, 2, 2 };
+	ResNet model(layers, img_size, 2);
 	return model;
 }
 
 
-ResNet resnet34() {
-	int64_t layers[] = { 3, 4, 6, 3 };
-	ResNet model(layers);
+ResNet resnet34(at::IntArrayRef img_size) {
+	at::IntArrayRef layers = { 3, 4, 6, 3 };
+	ResNet model(layers, img_size, 2);
 	return model;
 }
 
