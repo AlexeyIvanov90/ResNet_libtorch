@@ -2,7 +2,6 @@
 
 torch::Tensor img_to_tensor(cv::Mat scr) {
 	cv::cvtColor(scr, scr, cv::COLOR_BGR2RGB); // camera out - RGB, openCV - BGR
-	//cv::resize(scr, scr, cv::Size(448, 448));
 
 	torch::Tensor img_tensor = torch::from_blob(scr.data, { scr.rows, scr.cols, 3 }, torch::kByte).clone();
 
