@@ -1,3 +1,4 @@
+#include <filesystem>
 #include "model.h"
 
 
@@ -54,7 +55,7 @@ torch::Tensor BasicBlock::forward(torch::Tensor x) {
 const int BasicBlock::expansion = 1;
 
 
-ResNet::ResNet(at::IntArrayRef layers, at::IntArrayRef img_size, int64_t num_classes)
+ResNet::ResNet(at::IntArrayRef layers, at::IntArrayRef img_size)
 	:conv1(conv_options(3, 64, 7, 2, 3)),
 	bn1(64),
 	layer1(_make_layer(64, layers[0])),
@@ -63,7 +64,7 @@ ResNet::ResNet(at::IntArrayRef layers, at::IntArrayRef img_size, int64_t num_cla
 	layer4(_make_layer(512, layers[3], 2)),
 
 	n(5120),
-	fc(n, num_classes)
+	fc(n, NUM_CLASSES)
 {
 	register_module("conv1", conv1);
 	register_module("bn1", bn1);
@@ -76,8 +77,6 @@ ResNet::ResNet(at::IntArrayRef layers, at::IntArrayRef img_size, int64_t num_cla
 
 
 torch::Tensor ResNet::forward(torch::Tensor x) {
-	//std::cout << _get_conv_output(x.sizes()) << std::endl;
-
 	x = conv1->forward(x);
 	x = bn1->forward(x);
 	x = torch::relu(x);
@@ -94,6 +93,21 @@ torch::Tensor ResNet::forward(torch::Tensor x) {
 	x = fc->forward(x);
 
 	return x;
+}
+
+
+void ResNet::save(std::string path) {
+	std::filesystem::create_directories(path);
+	torch::serialize::OutputArchive save_data;
+	std::cout << path << std::endl;
+	conv1->save(save_data);
+	save_data.save_to(path + "conv1.pt");
+}
+
+
+ResNet ResNet::load(std::string path, at::IntArrayRef layers, at::IntArrayRef img_size) {
+	ResNet model(layers, img_size);
+	return model;
 }
 
 
@@ -145,14 +159,14 @@ int64_t ResNet::_get_conv_output(at::IntArrayRef img_size) {
 
 ResNet resnet18(at::IntArrayRef img_size) {
 	at::IntArrayRef layers = { 2, 2, 2, 2 };
-	ResNet model(layers, img_size, 2);
+	ResNet model(layers, img_size);
 	return model;
 }
 
 
 ResNet resnet34(at::IntArrayRef img_size) {
 	at::IntArrayRef layers = { 3, 4, 6, 3 };
-	ResNet model(layers, img_size, 2);
+	ResNet model(layers, img_size);
 	return model;
 }
 
@@ -272,8 +286,8 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 		if (val_accuracy < best_mse)
 		{
 			stat += "\nbest_model";
-			model_file_name += "_best_model";
-			//torch::save(model, "../best_model.pt");
+			model_file_name += "_best_model/";
+			model.save("../best_model/");
 			best_mse = val_accuracy;
 		}
 
@@ -285,7 +299,7 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 
 		std::cout << stat << std::endl;
 
-		//torch::save(model, model_file_name + ".pt");
+		model.save(model_file_name);
 
 		if (epoch != epochs) {
 			model.to(device);

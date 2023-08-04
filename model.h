@@ -4,7 +4,7 @@
 #include <torch/torch.h>
 
 #define SIZE_IMG { 3, 200, 100 }
-
+#define NUM_CLASSES 2
 
 struct BasicBlock : torch::nn::Module {
 
@@ -36,8 +36,12 @@ struct ResNet : torch::nn::Module {
 	torch::nn::Sequential layer4;
 	torch::nn::Linear fc;
 
-	ResNet(at::IntArrayRef layers, at::IntArrayRef img_size, int64_t num_classes);
+	ResNet(at::IntArrayRef layers, at::IntArrayRef img_size);
 	torch::Tensor forward(torch::Tensor x);
+	void save(std::string path);
+	ResNet load(std::string path, at::IntArrayRef layers, at::IntArrayRef img_size);
+
+
 
 private:
 	torch::nn::Sequential _make_layer(int64_t planes, int64_t blocks, int64_t stride = 1);
