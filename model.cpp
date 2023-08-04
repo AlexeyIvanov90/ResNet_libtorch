@@ -55,14 +55,14 @@ const int BasicBlock::expansion = 1;
 
 
 ResNet::ResNet(at::IntArrayRef layers, at::IntArrayRef img_size, int64_t num_classes)
-	: conv1(torch::nn::Conv2dOptions(3, 64, 7).stride(1)),
-	//conv1(conv_options(3, 64, 7, 2, 3)),
+	:conv1(conv_options(3, 64, 7, 2, 3)),
 	bn1(64),
 	layer1(_make_layer(64, layers[0])),
 	layer2(_make_layer(128, layers[1], 2)),
 	layer3(_make_layer(256, layers[2], 2)),
 	layer4(_make_layer(512, layers[3], 2)),
-	n(22528),
+
+	n(5120),
 	fc(n, num_classes)
 {
 	register_module("conv1", conv1);
@@ -76,6 +76,7 @@ ResNet::ResNet(at::IntArrayRef layers, at::IntArrayRef img_size, int64_t num_cla
 
 
 torch::Tensor ResNet::forward(torch::Tensor x) {
+	//std::cout << _get_conv_output(x.sizes()) << std::endl;
 
 	x = conv1->forward(x);
 	x = bn1->forward(x);
@@ -89,6 +90,7 @@ torch::Tensor ResNet::forward(torch::Tensor x) {
 
 	x = torch::avg_pool2d(x, 3, 1);
 	x = x.view({ x.sizes()[0], -1 });
+
 	x = fc->forward(x);
 
 	return x;
@@ -115,7 +117,9 @@ torch::nn::Sequential ResNet::_make_layer(int64_t planes, int64_t blocks, int64_
 
 
 int64_t ResNet::_get_conv_output(at::IntArrayRef img_size) {
-	torch::Tensor x = torch::zeros(img_size);
+	torch::Tensor x = torch::zeros(img_size, torch::Dtype::Float);
+	x = torch::unsqueeze(x, 0);
+
 	std::cout << x.sizes() << std::endl;
 
 	x = conv1->forward(x);
@@ -130,7 +134,9 @@ int64_t ResNet::_get_conv_output(at::IntArrayRef img_size) {
 	x = layer3->forward(x);
 	x = layer4->forward(x);
 
-	x = torch::avg_pool2d(x, 7, 1);
+	x = torch::avg_pool2d(x, 3, 1);
+	std::cout << x.sizes() << std::endl;
+
 	x = x.view({ x.sizes()[0], -1 });
 
 	return x.numel();
@@ -221,9 +227,7 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 
 		size_t batch_idx = 0;
 		double train_mse = 0.;
-
 		double val_accuracy = DBL_MAX;
-
 
 		for (auto& batch : *train_data_loader) {
 			auto stat = "\r" + std::to_string(int((double(batch_idx * OptionsData.batch_size()) / dataset_size) * 100)) + "%";
