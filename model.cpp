@@ -214,7 +214,8 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 		train_data_set_,
 		OptionsData);
 
-	torch::optim::Adam optimizer(model->parameters(), torch::optim::AdamOptions(1e-3));
+	//torch::optim::Adam optimizer(model->parameters(), torch::optim::AdamOptions(1e-3));
+	torch::optim::SGD optimizer{ model->parameters(), torch::optim::SGDOptions(1e-1).momentum(0.9).weight_decay(1e-4) };//lr 1e-1
 
 	int dataset_size = train_data_set.size().value();
 	float best_mse = std::numeric_limits<float>::max();
