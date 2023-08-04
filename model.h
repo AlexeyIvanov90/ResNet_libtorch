@@ -6,6 +6,7 @@
 #define SIZE_IMG { 3, 200, 100 }
 #define NUM_CLASSES 2
 
+
 struct BasicBlock : torch::nn::Module {
 
 	static const int expansion;
@@ -24,7 +25,7 @@ struct BasicBlock : torch::nn::Module {
 };
 
 
-struct ResNet : torch::nn::Module {
+struct ResNetImpl : torch::nn::Module {
 
 	int64_t n = 0;
 	int64_t inplanes = 64;
@@ -36,24 +37,20 @@ struct ResNet : torch::nn::Module {
 	torch::nn::Sequential layer4;
 	torch::nn::Linear fc;
 
-	ResNet(at::IntArrayRef layers, at::IntArrayRef img_size);
+	ResNetImpl(at::IntArrayRef layers, at::IntArrayRef img_size);
 	torch::Tensor forward(torch::Tensor x);
-	void save(std::string path);
-	ResNet load(std::string path, at::IntArrayRef layers, at::IntArrayRef img_size);
-
-
 
 private:
 	torch::nn::Sequential _make_layer(int64_t planes, int64_t blocks, int64_t stride = 1);
 	int64_t _get_conv_output(at::IntArrayRef img_size = SIZE_IMG);
 };
 
+TORCH_MODULE(ResNet);
 
-ResNet resnet18(at::IntArrayRef img_size = SIZE_IMG);
-ResNet resnet34(at::IntArrayRef img_size = SIZE_IMG);
-
+ResNet ResNet18(at::IntArrayRef img_size = SIZE_IMG);
+ResNet ResNet34(at::IntArrayRef img_size = SIZE_IMG);
 
 torch::Tensor classification(torch::Tensor img_tensor, ResNet model);
 double classification_accuracy(CustomDataset &scr, ResNet model, bool save_error = false);
-void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &model, int epochs, torch::data::DataLoaderOptions OptionsData, torch::Device device);
+void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &model, size_t epochs, torch::data::DataLoaderOptions OptionsData, torch::Device device);
 

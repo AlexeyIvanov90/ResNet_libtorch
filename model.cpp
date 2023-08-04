@@ -55,7 +55,7 @@ torch::Tensor BasicBlock::forward(torch::Tensor x) {
 const int BasicBlock::expansion = 1;
 
 
-ResNet::ResNet(at::IntArrayRef layers, at::IntArrayRef img_size)
+ResNetImpl::ResNetImpl(at::IntArrayRef layers, at::IntArrayRef img_size)
 	:conv1(conv_options(3, 64, 7, 2, 3)),
 	bn1(64),
 	layer1(_make_layer(64, layers[0])),
@@ -76,7 +76,7 @@ ResNet::ResNet(at::IntArrayRef layers, at::IntArrayRef img_size)
 }
 
 
-torch::Tensor ResNet::forward(torch::Tensor x) {
+torch::Tensor ResNetImpl::forward(torch::Tensor x) {
 	x = conv1->forward(x);
 	x = bn1->forward(x);
 	x = torch::relu(x);
@@ -96,22 +96,7 @@ torch::Tensor ResNet::forward(torch::Tensor x) {
 }
 
 
-void ResNet::save(std::string path) {
-	std::filesystem::create_directories(path);
-	torch::serialize::OutputArchive save_data;
-	std::cout << path << std::endl;
-	conv1->save(save_data);
-	save_data.save_to(path + "conv1.pt");
-}
-
-
-ResNet ResNet::load(std::string path, at::IntArrayRef layers, at::IntArrayRef img_size) {
-	ResNet model(layers, img_size);
-	return model;
-}
-
-
-torch::nn::Sequential ResNet::_make_layer(int64_t planes, int64_t blocks, int64_t stride) {
+torch::nn::Sequential ResNetImpl::_make_layer(int64_t planes, int64_t blocks, int64_t stride) {
 	torch::nn::Sequential downsample;
 	if (stride != 1 || inplanes != planes * BasicBlock::expansion) {
 		downsample = torch::nn::Sequential(
@@ -130,7 +115,7 @@ torch::nn::Sequential ResNet::_make_layer(int64_t planes, int64_t blocks, int64_
 }
 
 
-int64_t ResNet::_get_conv_output(at::IntArrayRef img_size) {
+int64_t ResNetImpl::_get_conv_output(at::IntArrayRef img_size) {
 	torch::Tensor x = torch::zeros(img_size, torch::Dtype::Float);
 	x = torch::unsqueeze(x, 0);
 
@@ -155,16 +140,16 @@ int64_t ResNet::_get_conv_output(at::IntArrayRef img_size) {
 
 	return x.numel();
 }
+ 
 
-
-ResNet resnet18(at::IntArrayRef img_size) {
+ResNet ResNet18(at::IntArrayRef img_size) {
 	at::IntArrayRef layers = { 2, 2, 2, 2 };
 	ResNet model(layers, img_size);
 	return model;
 }
 
 
-ResNet resnet34(at::IntArrayRef img_size) {
+ResNet ResNet34(at::IntArrayRef img_size) {
 	at::IntArrayRef layers = { 3, 4, 6, 3 };
 	ResNet model(layers, img_size);
 	return model;
@@ -173,12 +158,12 @@ ResNet resnet34(at::IntArrayRef img_size) {
 
 torch::Tensor classification(torch::Tensor img_tensor, ResNet model)
 {
-	model.eval();
-	model.to(torch::kCPU);
+	model->eval();
+	model->to(torch::kCPU);
 	img_tensor.to(torch::kCPU);
 	img_tensor = img_tensor.unsqueeze(0);
 
-	torch::Tensor log_prob = model.forward(img_tensor);
+	torch::Tensor log_prob = model->forward(img_tensor);
 	torch::Tensor prob = torch::exp(log_prob);
 
 	return torch::argmax(prob);
@@ -214,14 +199,14 @@ double classification_accuracy(CustomDataset &scr, ResNet model, bool save_error
 }
 
 
-void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &model, int epochs, torch::data::DataLoaderOptions OptionsData, torch::Device device)
+void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &model, size_t epochs, torch::data::DataLoaderOptions OptionsData, torch::Device device)
 {
 	if (device == torch::kCPU)
 		std::cout << "Training on CPU" << std::endl;
 	else
 		std::cout << "Training on GPU" << std::endl;
 
-	model.to(device);
+	model->to(device);
 
 	auto train_data_set_ = train_data_set.map(torch::data::transforms::Stack<>());
 
@@ -229,12 +214,12 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 		train_data_set_,
 		OptionsData);
 
-	torch::optim::Adam optimizer(model.parameters(), torch::optim::AdamOptions(1e-3));
+	torch::optim::Adam optimizer(model->parameters(), torch::optim::AdamOptions(1e-3));
 
 	int dataset_size = train_data_set.size().value();
 	float best_mse = std::numeric_limits<float>::max();
 
-	model.train();
+	model->train();
 
 	for (int epoch = 1; epoch <= epochs; epoch++) {
 		auto begin = std::chrono::steady_clock::now();
@@ -254,7 +239,7 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 			labels = labels.to(device);
 
 			optimizer.zero_grad();
-			auto output = model.forward(imgs);
+			auto output = model->forward(imgs);
 
 			//auto loss = torch::nll_loss(output, labels);
 			auto loss = torch::cross_entropy_loss(output, labels);
@@ -273,8 +258,8 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 		auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - begin);
 		std::cout << "\rTime for epoch: " << elapsed_ms.count() << " ms\n";
 
-		model.eval();
-		model.to(torch::kCPU);
+		model->eval();
+		model->to(torch::kCPU);
 		val_accuracy = classification_accuracy(val_data_set, model, false);
 
 		std::string stat = "\rEpoch [" + std::to_string(epoch) + "/" +
@@ -286,8 +271,8 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 		if (val_accuracy < best_mse)
 		{
 			stat += "\nbest_model";
-			model_file_name += "_best_model/";
-			model.save("../best_model/");
+			model_file_name += "_best_model";
+			torch::save(model, "../best_model.pt");
 			best_mse = val_accuracy;
 		}
 
@@ -299,11 +284,12 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 
 		std::cout << stat << std::endl;
 
-		model.save(model_file_name);
+		torch::save(model, model_file_name + ".pt");
 
 		if (epoch != epochs) {
-			model.to(device);
-			model.train();
+			model->to(device);
+			model->train();
 		}
 	}
 }
+
