@@ -37,18 +37,18 @@ struct ResNetImpl : torch::nn::Module {
 	torch::nn::Sequential layer4;
 	torch::nn::Linear fc;
 
-	ResNetImpl(at::IntArrayRef layers, at::IntArrayRef img_size);
+	ResNetImpl(at::IntArrayRef layers);
 	torch::Tensor forward(torch::Tensor x);
 
 private:
 	torch::nn::Sequential _make_layer(int64_t planes, int64_t blocks, int64_t stride = 1);
-	int64_t _get_conv_output(at::IntArrayRef img_size = SIZE_IMG);
+	int64_t _get_conv_output(at::IntArrayRef layers);
 };
 
 TORCH_MODULE(ResNet);
 
-ResNet ResNet18(at::IntArrayRef img_size = SIZE_IMG);
-ResNet ResNet34(at::IntArrayRef img_size = SIZE_IMG);
+ResNet ResNet18();
+ResNet ResNet34();
 
 torch::Tensor classification(torch::Tensor img_tensor, ResNet model);
 double classification_accuracy(CustomDataset &scr, ResNet model, bool save_error = false);
