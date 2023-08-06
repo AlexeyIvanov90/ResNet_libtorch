@@ -290,7 +290,10 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 				std::cout << "learning rate: "<< lr << std::endl;;
 				count = 0;
 				lr = lr / 10;
-				optimizer.parameters() = torch::optim::Adam(model->parameters(), torch::optim::AdamOptions(lr)).parameters();
+
+				auto options = static_cast<torch::optim::AdamOptions&>(optimizer.defaults());
+				auto lr = options.lr();
+				options.lr(lr);
 			}
 		}
 
