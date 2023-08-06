@@ -222,7 +222,7 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 	size_t count = 0;
 
 	torch::optim::Adam optimizer(model->parameters(), torch::optim::AdamOptions(lr));
-	//torch::optim::SGD optimizer{ model->parameters(), torch::optim::SGDOptions(1e-1).momentum(0.9).weight_decay(1e-4) };//lr 1e-1
+	//torch::optim::SGD optimizer{ model->parameters(), torch::optim::SGDOptions(lr).momentum(0.9).weight_decay(1e-4) };
 
 	int dataset_size = train_data_set.size().value();
 	float best_mse = std::numeric_limits<float>::max();
@@ -279,17 +279,19 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 		if (val_accuracy < best_mse)
 		{
 			stat += "\nbest_model";
-			model_file_name += "_best_model";
 			torch::save(model, "../best_model.pt");
+			torch::save(model, model_file_name + "_best_model.pt");
 			best_mse = val_accuracy;
 			count = 0;
 		}
 		else {
+			torch::save(model, model_file_name + ".pt");
 			count++;
-			if (count > 10 && lr > 1e-6) {
-				std::cout << "learning rate: "<< lr << std::endl;;
+			if (count == 10 && lr > 1e-3 * 1.5) {
 				count = 0;
-				lr = lr / 10;
+				lr = lr / 10.;
+
+				std::cout << "new learning rate: " << lr << std::endl;
 
 				auto options = static_cast<torch::optim::AdamOptions&>(optimizer.defaults());
 				auto lr = options.lr();
@@ -304,8 +306,6 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 		out.close();
 
 		std::cout << stat << std::endl;
-
-		torch::save(model, model_file_name + ".pt");
 
 		if (epoch != epochs) {
 			model->to(device);
