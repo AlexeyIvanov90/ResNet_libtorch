@@ -93,6 +93,7 @@ torch::Tensor ResNetImpl::forward(torch::Tensor x) {
 	//std::cout << x.sizes() << std::endl;
 
 	x = fc->forward(x);
+	x = torch::softmax(x, 1);
 
 	return x;
 }
@@ -114,35 +115,6 @@ torch::nn::Sequential ResNetImpl::_make_layer(int64_t planes, int64_t blocks, in
 	}
 
 	return layers;
-}
-
-
-int64_t ResNetImpl::_get_conv_output(at::IntArrayRef layers) {
-	torch::nn::Conv2d temp_1(conv_options(3, 64, 7, 2, 3));
-	torch::nn::Sequential temp_test;
-	temp_test = _make_layer(64, layers[0]);
-
-	torch::nn::Sequential temp_2(_make_layer(64, layers[0]));
-	torch::nn::Sequential temp_3(_make_layer(128, layers[1], 2));
-	torch::nn::Sequential temp_4(_make_layer(256, layers[2], 2));
-	torch::nn::Sequential temp_5(_make_layer(512, layers[3], 2));
-
-	torch::Tensor x = torch::zeros(SIZE_IMG, torch::Dtype::Float);
-	x = torch::unsqueeze(x, 0);
-
-	x = temp_1->forward(x);
-	x = torch::max_pool2d(x, 3, 2, 1);
-
-	x = temp_2->forward(x);
-	x = temp_3->forward(x);
-	x = temp_4->forward(x);
-	x = temp_5->forward(x);
-
-	x = torch::avg_pool2d(x, 3, 1);
-
-	std::cout << x.numel() << std::endl;
-
-	return x.numel();
 }
  
 
@@ -167,8 +139,8 @@ torch::Tensor classification(torch::Tensor img_tensor, ResNet model)
 	img_tensor.to(torch::kCPU);
 	img_tensor = img_tensor.unsqueeze(0);
 
-	torch::Tensor log_prob = model->forward(img_tensor);
-	torch::Tensor prob = torch::exp(log_prob);
+	torch::Tensor prob = model->forward(img_tensor);
+	//torch::Tensor prob = torch::exp(log_prob);
 
 	return torch::argmax(prob);
 }
@@ -218,7 +190,7 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 		train_data_set_,
 		OptionsData);
 
-	double lr = 1e-1;
+	double lr = 1e-4;
 	size_t count = 0;
 
 	torch::optim::Adam optimizer(model->parameters(), torch::optim::AdamOptions(lr));
@@ -249,7 +221,6 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 			optimizer.zero_grad();
 			auto output = model->forward(imgs);
 
-			//auto loss = torch::nll_loss(output, labels);
 			auto loss = torch::cross_entropy_loss(output, labels);
 
 			loss.backward();
@@ -280,14 +251,13 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 		{
 			stat += "\nbest_model";
 			torch::save(model, "../best_model.pt");
-			torch::save(model, model_file_name + "_best_model.pt");
+			model_file_name += "_best_model";
 			best_mse = val_accuracy;
 			count = 0;
 		}
 		else {
-			torch::save(model, model_file_name + ".pt");
 			count++;
-			if (count == 10 && lr > 1e-3 * 1.5) {
+			if (count == 5 && lr > 1e-3 * 1.5) {
 				count = 0;
 				lr = lr / 10.;
 
@@ -298,6 +268,9 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 				options.lr(lr);
 			}
 		}
+
+		torch::save(model, model_file_name + ".pt");
+
 
 		std::ofstream out;
 		out.open("../models/stat.txt", std::ios::app);

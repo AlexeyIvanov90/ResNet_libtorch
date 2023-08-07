@@ -16,7 +16,7 @@ int main()
 	CustomDataset val_data_set(val_file_csv);
 	CustomDataset test_data_set(test_file_csv);
 
-	ResNet model = ResNet34();
+	ResNet model = ResNet18();
 	torch::data::DataLoaderOptions OptionsData;
 	OptionsData.batch_size(64).workers(12);
 
