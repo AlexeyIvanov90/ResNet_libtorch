@@ -56,14 +56,14 @@ const int BasicBlock::expansion = 1;
 
 
 ResNetImpl::ResNetImpl(at::IntArrayRef layers)
-	//: conv1(torch::nn::Conv2dOptions(3, 64, 7).stride(1)),
-	:conv1(conv_options(3, 64, 7, 2)),
+	: conv1(torch::nn::Conv2dOptions(3, 64, 7).stride(1)),
+	//:conv1(conv_options(3, 64, 7, 2)),
 	bn1(64),
 	layer1(_make_layer(64, layers[0])),
 	layer2(_make_layer(128, layers[1], 2)),
 	layer3(_make_layer(256, layers[2], 2)),
 	layer4(_make_layer(512, layers[3], 2)),
-	n(2560),
+	n(22528),
 	fc(n, NUM_CLASSES)
 {
 	register_module("conv1", conv1);
@@ -140,8 +140,6 @@ torch::Tensor classification(torch::Tensor img_tensor, ResNet model)
 	img_tensor = img_tensor.unsqueeze(0);
 
 	torch::Tensor prob = model->forward(img_tensor);
-	//torch::Tensor prob = torch::exp(log_prob);
-
 	return torch::argmax(prob);
 }
 
@@ -257,7 +255,7 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 		}
 		else {
 			count++;
-			if (count == 5 && lr > 1e-3 * 1.5) {
+			if (count == 10 && lr > 1e-6 * 1.5) {
 				count = 0;
 				lr = lr / 10.;
 
@@ -270,7 +268,6 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 		}
 
 		torch::save(model, model_file_name + ".pt");
-
 
 		std::ofstream out;
 		out.open("../models/stat.txt", std::ios::app);
