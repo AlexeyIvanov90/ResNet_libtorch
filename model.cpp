@@ -189,7 +189,7 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 		OptionsData);
 
 	double lr = 1e-4;
-	size_t count = 0;
+	size_t count_lr = 0;
 
 	torch::optim::Adam optimizer(model->parameters(), torch::optim::AdamOptions(lr));
 	//torch::optim::SGD optimizer{ model->parameters(), torch::optim::SGDOptions(lr).momentum(0.9).weight_decay(1e-4) };
@@ -251,12 +251,12 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 			torch::save(model, "../best_model.pt");
 			model_file_name += "_best_model";
 			best_mse = val_accuracy;
-			count = 0;
+			count_lr = 0;
 		}
 		else {
-			count++;
-			if (count == 10 && lr > 1e-6 * 1.5) {
-				count = 0;
+			count_lr++;
+			if (count_lr == 10 && lr > 1e-6 * 1.5) {
+				count_lr = 0;
 				lr = lr / 10.;
 
 				std::cout << "new learning rate: " << lr << std::endl;
