@@ -25,6 +25,26 @@ struct BasicBlock : torch::nn::Module {
 };
 
 
+struct BottleNeck : torch::nn::Module {
+
+	static const int expansion;
+
+	int64_t stride;
+	torch::nn::Conv2d conv1;
+	torch::nn::BatchNorm2d bn1;
+	torch::nn::Conv2d conv2;
+	torch::nn::BatchNorm2d bn2;
+	torch::nn::Conv2d conv3;
+	torch::nn::BatchNorm2d bn3;
+	torch::nn::Sequential downsample;
+
+	BottleNeck(int64_t inplanes, int64_t planes, int64_t stride_ = 1,
+		torch::nn::Sequential downsample_ = torch::nn::Sequential());
+
+	torch::Tensor forward(torch::Tensor x);
+};
+
+
 struct ResNetImpl : torch::nn::Module {
 
 	int64_t n = 0;

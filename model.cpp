@@ -55,6 +55,57 @@ torch::Tensor BasicBlock::forward(torch::Tensor x) {
 const int BasicBlock::expansion = 1;
 
 
+BottleNeck::BottleNeck(int64_t inplanes, int64_t planes, int64_t stride_,
+	torch::nn::Sequential downsample_)
+	: conv1(conv_options(inplanes, planes, 1)),
+	bn1(planes),
+	conv2(conv_options(planes, planes, 3, stride_, 1)),
+	bn2(planes),
+	conv3(conv_options(planes, planes * expansion, 1)),
+	bn3(planes * expansion),
+	downsample(downsample_)
+{
+	register_module("conv1", conv1);
+	register_module("bn1", bn1);
+	register_module("conv2", conv2);
+	register_module("bn2", bn2);
+	register_module("conv3", conv3);
+	register_module("bn3", bn3);
+	stride = stride_;
+	if (!downsample->is_empty()) {
+		register_module("downsample", downsample);
+	}
+}
+
+
+torch::Tensor BottleNeck::forward(torch::Tensor x) {
+	at::Tensor residual(x.clone());
+
+	x = conv1->forward(x);
+	x = bn1->forward(x);
+	x = torch::relu(x);
+
+	x = conv2->forward(x);
+	x = bn2->forward(x);
+	x = torch::relu(x);
+
+	x = conv3->forward(x);
+	x = bn3->forward(x);
+
+	if (!downsample->is_empty()) {
+		residual = downsample->forward(residual);
+	}
+
+	x += residual;
+	x = torch::relu(x);
+
+	return x;
+}
+
+
+const int BottleNeck::expansion = 4;
+
+
 ResNetImpl::ResNetImpl(at::IntArrayRef layers)
 	: conv1(torch::nn::Conv2dOptions(3, 64, 7).stride(1)),
 	//:conv1(conv_options(3, 64, 7, 2)),
@@ -116,7 +167,7 @@ torch::nn::Sequential ResNetImpl::_make_layer(int64_t planes, int64_t blocks, in
 
 	return layers;
 }
- 
+
 
 ResNet ResNet18() {
 	at::IntArrayRef layers = { 2, 2, 2, 2 };
@@ -139,7 +190,9 @@ torch::Tensor classification(torch::Tensor img_tensor, ResNet model)
 	img_tensor.to(torch::kCPU);
 	img_tensor = img_tensor.unsqueeze(0);
 
-	torch::Tensor prob = model->forward(img_tensor);
+	torch::Tensor log_prob = model->forward(img_tensor);
+	torch::Tensor prob = torch::exp(log_prob);
+
 	return torch::argmax(prob);
 }
 
@@ -189,13 +242,14 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 		OptionsData);
 
 	double lr = 1e-4;
-	size_t count_lr = 0;
+	size_t count = 0;
 
 	torch::optim::Adam optimizer(model->parameters(), torch::optim::AdamOptions(lr));
 	//torch::optim::SGD optimizer{ model->parameters(), torch::optim::SGDOptions(lr).momentum(0.9).weight_decay(1e-4) };
 
 	int dataset_size = train_data_set.size().value();
 	float best_mse = std::numeric_limits<float>::max();
+	best_mse = 15.407855;
 
 	model->train();
 
@@ -249,14 +303,14 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 		{
 			stat += "\nbest_model";
 			torch::save(model, "../best_model.pt");
-			model_file_name += "_best_model";
+			model_file_name += "best_model";
 			best_mse = val_accuracy;
-			count_lr = 0;
+			count = 0;
 		}
 		else {
-			count_lr++;
-			if (count_lr == 10 && lr > 1e-6 * 1.5) {
-				count_lr = 0;
+			count++;
+			if (count == 10 && lr > 1e-5 * 1.5) {
+				count = 0;
 				lr = lr / 10.;
 
 				std::cout << "new learning rate: " << lr << std::endl;
