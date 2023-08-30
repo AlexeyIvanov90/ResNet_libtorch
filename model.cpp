@@ -113,7 +113,8 @@ ResNetImpl::ResNetImpl(at::IntArrayRef layers)
 	layer2(_make_layer(128, layers[1], 2)),
 	layer3(_make_layer(256, layers[2], 2)),
 	layer4(_make_layer(512, layers[3], 2)),
-	n(22528),
+	//n(22528),
+	n(90112),
 	fc(n, NUM_CLASSES)
 {
 	register_module("conv1", conv1);
@@ -148,7 +149,7 @@ torch::Tensor ResNetImpl::forward(torch::Tensor x) {
 	return x;
 }
 
-
+/*
 torch::nn::Sequential ResNetImpl::_make_layer(int64_t planes, int64_t blocks, int64_t stride) {
 	torch::nn::Sequential downsample;
 	if (stride != 1 || inplanes != planes * BasicBlock::expansion) {
@@ -180,8 +181,28 @@ ResNet ResNet34() {
 	ResNet model(layers);
 	return model;
 }
+*/
 
 //BottleNeck
+torch::nn::Sequential ResNetImpl::_make_layer(int64_t planes, int64_t blocks, int64_t stride) {
+	torch::nn::Sequential downsample;
+	if (stride != 1 || inplanes != planes * BottleNeck::expansion) {
+		downsample = torch::nn::Sequential(
+			torch::nn::Conv2d(conv_options(inplanes, planes * BottleNeck::expansion, 1, stride)),
+			torch::nn::BatchNorm2d(planes * BottleNeck::expansion)
+		);
+	}
+	torch::nn::Sequential layers;
+	layers->push_back(BottleNeck(inplanes, planes, stride, downsample));
+	inplanes = planes * BottleNeck::expansion;
+	for (int64_t i = 0; i < blocks; i++) {
+		layers->push_back(BottleNeck(inplanes, planes));
+	}
+
+	return layers;
+}
+
+
 ResNet ResNet50() {
 	at::IntArrayRef layers = { 3, 4, 6, 3 };
 	ResNet model(layers);

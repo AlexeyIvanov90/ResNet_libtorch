@@ -16,11 +16,11 @@ int main()
 	CustomDataset val_data_set(val_file_csv);
 	CustomDataset test_data_set(test_file_csv);
 
-	ResNet model = ResNet18();
+	ResNet model = ResNet152();
 	torch::data::DataLoaderOptions OptionsData;
 	OptionsData.batch_size(64).workers(12);
 
-	torch::load(model, "../best_model.pt");
+	//torch::load(model, "../best_model.pt");
 
 	train(train_data_set, val_data_set, model, epochs, OptionsData, device);
 
