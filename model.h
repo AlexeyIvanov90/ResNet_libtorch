@@ -45,7 +45,7 @@ struct BottleNeck : torch::nn::Module {
 };
 
 
-struct ResNetImpl : torch::nn::Module {
+ struct ResNetImpl : torch::nn::Module {
 
 	int64_t n = 0;
 	int64_t inplanes = 64;
@@ -69,6 +69,10 @@ TORCH_MODULE(ResNet);
 
 ResNet ResNet18();
 ResNet ResNet34();
+
+ResNet ResNet50();
+ResNet ResNet101();
+ResNet ResNet152();
 
 torch::Tensor classification(torch::Tensor img_tensor, ResNet model);
 double classification_accuracy(CustomDataset &scr, ResNet model, bool save_error = false);

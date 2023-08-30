@@ -102,7 +102,6 @@ torch::Tensor BottleNeck::forward(torch::Tensor x) {
 	return x;
 }
 
-
 const int BottleNeck::expansion = 4;
 
 
@@ -178,6 +177,27 @@ ResNet ResNet18() {
 
 ResNet ResNet34() {
 	at::IntArrayRef layers = { 3, 4, 6, 3 };
+	ResNet model(layers);
+	return model;
+}
+
+//BottleNeck
+ResNet ResNet50() {
+	at::IntArrayRef layers = { 3, 4, 6, 3 };
+	ResNet model(layers);
+	return model;
+}
+
+
+ResNet ResNet101() {
+	at::IntArrayRef layers = { 3, 4, 23, 3 };
+	ResNet model(layers);
+	return model;
+}
+
+
+ResNet ResNet152() {
+	at::IntArrayRef layers = { 3, 8, 36, 3 };
 	ResNet model(layers);
 	return model;
 }
