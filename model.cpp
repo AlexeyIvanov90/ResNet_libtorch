@@ -1,5 +1,6 @@
 #include <filesystem>
 #include "model.h"
+#include "utils.h"
 
 
 torch::nn::Conv2dOptions conv_options(int64_t in_planes, int64_t out_planes, int64_t kerner_size,
@@ -55,56 +56,6 @@ torch::Tensor BasicBlock::forward(torch::Tensor x) {
 const int BasicBlock::expansion = 1;
 
 
-BottleNeck::BottleNeck(int64_t inplanes, int64_t planes, int64_t stride_,
-	torch::nn::Sequential downsample_)
-	: conv1(conv_options(inplanes, planes, 1)),
-	bn1(planes),
-	conv2(conv_options(planes, planes, 3, stride_, 1)),
-	bn2(planes),
-	conv3(conv_options(planes, planes * expansion, 1)),
-	bn3(planes * expansion),
-	downsample(downsample_)
-{
-	register_module("conv1", conv1);
-	register_module("bn1", bn1);
-	register_module("conv2", conv2);
-	register_module("bn2", bn2);
-	register_module("conv3", conv3);
-	register_module("bn3", bn3);
-	stride = stride_;
-	if (!downsample->is_empty()) {
-		register_module("downsample", downsample);
-	}
-}
-
-
-torch::Tensor BottleNeck::forward(torch::Tensor x) {
-	at::Tensor residual(x.clone());
-
-	x = conv1->forward(x);
-	x = bn1->forward(x);
-	x = torch::relu(x);
-
-	x = conv2->forward(x);
-	x = bn2->forward(x);
-	x = torch::relu(x);
-
-	x = conv3->forward(x);
-	x = bn3->forward(x);
-
-	if (!downsample->is_empty()) {
-		residual = downsample->forward(residual);
-	}
-
-	x += residual;
-	x = torch::relu(x);
-
-	return x;
-}
-
-const int BottleNeck::expansion = 4;
-
-
 ResNetImpl::ResNetImpl(at::IntArrayRef layers)
 	: conv1(torch::nn::Conv2dOptions(3, 64, 7).stride(1)),
 	//:conv1(conv_options(3, 64, 7, 2)),
@@ -113,8 +64,7 @@ ResNetImpl::ResNetImpl(at::IntArrayRef layers)
 	layer2(_make_layer(128, layers[1], 2)),
 	layer3(_make_layer(256, layers[2], 2)),
 	layer4(_make_layer(512, layers[3], 2)),
-	//n(22528),
-	n(90112),
+	n(22528),	
 	fc(n, NUM_CLASSES)
 {
 	register_module("conv1", conv1);
@@ -149,7 +99,7 @@ torch::Tensor ResNetImpl::forward(torch::Tensor x) {
 	return x;
 }
 
-/*
+
 torch::nn::Sequential ResNetImpl::_make_layer(int64_t planes, int64_t blocks, int64_t stride) {
 	torch::nn::Sequential downsample;
 	if (stride != 1 || inplanes != planes * BasicBlock::expansion) {
@@ -180,90 +130,6 @@ ResNet ResNet34() {
 	at::IntArrayRef layers = { 3, 4, 6, 3 };
 	ResNet model(layers);
 	return model;
-}
-*/
-
-//BottleNeck
-torch::nn::Sequential ResNetImpl::_make_layer(int64_t planes, int64_t blocks, int64_t stride) {
-	torch::nn::Sequential downsample;
-	if (stride != 1 || inplanes != planes * BottleNeck::expansion) {
-		downsample = torch::nn::Sequential(
-			torch::nn::Conv2d(conv_options(inplanes, planes * BottleNeck::expansion, 1, stride)),
-			torch::nn::BatchNorm2d(planes * BottleNeck::expansion)
-		);
-	}
-	torch::nn::Sequential layers;
-	layers->push_back(BottleNeck(inplanes, planes, stride, downsample));
-	inplanes = planes * BottleNeck::expansion;
-	for (int64_t i = 0; i < blocks; i++) {
-		layers->push_back(BottleNeck(inplanes, planes));
-	}
-
-	return layers;
-}
-
-
-ResNet ResNet50() {
-	at::IntArrayRef layers = { 3, 4, 6, 3 };
-	ResNet model(layers);
-	return model;
-}
-
-
-ResNet ResNet101() {
-	at::IntArrayRef layers = { 3, 4, 23, 3 };
-	ResNet model(layers);
-	return model;
-}
-
-
-ResNet ResNet152() {
-	at::IntArrayRef layers = { 3, 8, 36, 3 };
-	ResNet model(layers);
-	return model;
-}
-
-
-torch::Tensor classification(torch::Tensor img_tensor, ResNet model)
-{
-	model->eval();
-	model->to(torch::kCPU);
-	img_tensor.to(torch::kCPU);
-	img_tensor = img_tensor.unsqueeze(0);
-
-	torch::Tensor log_prob = model->forward(img_tensor);
-	torch::Tensor prob = torch::exp(log_prob);
-
-	return torch::argmax(prob);
-}
-
-
-double classification_accuracy(CustomDataset &scr, ResNet model, bool save_error)
-{
-	int error = 0;
-	std::ofstream out;
-	out.open("../error_CNN/error_CNN.csv", std::ios::out);
-	for (int i = 0; i < scr.size().value(); i++) {
-		auto obj = scr.get(i);
-
-		torch::Tensor result = classification(obj.data, model);
-
-		if (result.item<int>() != obj.target.item<int>()) {
-			error++;
-			if (save_error) {
-				Element elem = scr.get_element(i);
-
-				if (out.is_open())
-					out << elem.img + "," +
-					std::to_string(elem.label) + "," +
-					std::to_string(result.item<int>()) +
-					"\n";
-			}
-		}
-	}
-	out.close();
-
-	return (double)error / scr.size().value();
 }
 
 

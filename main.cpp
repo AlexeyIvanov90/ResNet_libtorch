@@ -2,6 +2,7 @@
 #include <iostream>
 #include  "data_set.h"
 #include "model.h"
+#include  "utils.h"
 
 int main()
 {
@@ -10,13 +11,13 @@ int main()
 	std::string test_file_csv = "../data_set/data_test.csv";
 
 	torch::Device device("cpu");
-	size_t epochs = 2;
+	size_t epochs = 100000;
 
 	CustomDataset train_data_set(train_file_csv);
 	CustomDataset val_data_set(val_file_csv);
 	CustomDataset test_data_set(test_file_csv);
 
-	ResNet model = ResNet152();
+	ResNet model = ResNet18();
 	torch::data::DataLoaderOptions OptionsData;
 	OptionsData.batch_size(64).workers(12);
 

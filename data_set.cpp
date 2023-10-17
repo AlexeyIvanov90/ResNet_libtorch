@@ -1,8 +1,12 @@
 #include "data_set.h"
+#include <sstream>
+#include <fstream>
+#include <opencv2/opencv.hpp>
+
 
 torch::Tensor img_to_tensor(cv::Mat scr) {
 	cv::cvtColor(scr, scr, cv::COLOR_BGR2RGB); // camera out - RGB, openCV - BGR
-
+	
 	torch::Tensor img_tensor = torch::from_blob(scr.data, { scr.rows, scr.cols, 3 }, torch::kByte).clone();
 
 	img_tensor = img_tensor.toType(torch::kFloat);
