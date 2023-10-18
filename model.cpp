@@ -180,7 +180,13 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 			optimizer.zero_grad();
 			auto output = model->forward(imgs);
 
-			auto loss = torch::cross_entropy_loss(output, labels);
+
+			torch::Tensor weight = torch::ones(2);
+
+			weight[0] = 0.5;
+			weight[1] = 0.5;
+
+			auto loss = torch::cross_entropy_loss(output, labels, weight);
 
 			loss.backward();
 			optimizer.step();
@@ -198,7 +204,7 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 
 		model->eval();
 		model->to(torch::kCPU);
-		val_accuracy = classification_accuracy(val_data_set, model, false);
+		val_accuracy = classification_accuracy(val_data_set, model);
 
 		std::string stat = "\rEpoch [" + std::to_string(epoch) + "/" +
 			std::to_string(epochs) + "] Train MSE: " + std::to_string(train_mse) +

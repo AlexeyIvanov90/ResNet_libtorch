@@ -15,30 +15,39 @@ torch::Tensor classification(torch::Tensor img_tensor, ResNet model)
 }
 
 
-double classification_accuracy(CustomDataset &scr, ResNet model, bool save_error)
-{
+double classification_accuracy(CustomDataset &scr, ResNet model)
+{	
 	int error = 0;
-	std::ofstream out;
-	out.open("../error_CNN/error_CNN.csv", std::ios::out);
+
 	for (int i = 0; i < scr.size().value(); i++) {
 		auto obj = scr.get(i);
 
 		torch::Tensor result = classification(obj.data, model);
 
-		if (result.item<int>() != obj.target.item<int>()) {
+		if (result.item<int>() != obj.target.item<int>()) 
 			error++;
-			if (save_error) {
-				Element elem = scr.get_element(i);
-
-				if (out.is_open())
-					out << elem.img + "," +
-					std::to_string(elem.label) + "," +
-					std::to_string(result.item<int>()) +
-					"\n";
-			}
-		}
 	}
-	out.close();
 
 	return (double)error / scr.size().value();
 }
+
+torch::Tensor confusion_matrix(CustomDataset &scr, ResNet model) {
+	std::vector<size_t> category_size;
+	scr.get_category_size(&category_size);
+	torch::Tensor matrix = torch::zeros({ (int)category_size.size(), (int)category_size.size() });
+
+	for (int i = 0; i < scr.size().value(); i++) {
+		auto obj = scr.get(i);
+
+		torch::Tensor result = classification(obj.data, model);
+
+		if (result.item<int>() == obj.target.item<int>())
+			matrix[obj.target.item<int>()][obj.target.item<int>()] = matrix[obj.target.item<int>()][obj.target.item<int>()].item<int>() + 1;
+		else
+			matrix[obj.target.item<int>()][result.item<int>()] = matrix[obj.target.item<int>()][result.item<int>()].item<int>() +  1;
+	}
+
+
+	std::cout << matrix << std::endl;
+	return matrix;
+} 

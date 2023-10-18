@@ -23,13 +23,18 @@ int main()
 
 	//torch::load(model, "../best_model.pt");
 
-	train(train_data_set, val_data_set, model, epochs, OptionsData, device);
+	//train(train_data_set, val_data_set, model, epochs, OptionsData, device);
 
 	torch::load(model, "../best_model.pt");
 
+	confusion_matrix(test_data_set, model);
+	//confusion_matrix(val_data_set, model);
+	//confusion_matrix(train_data_set, model);
+	
+
 	std::cout << "Test error: " << classification_accuracy(test_data_set, model) << std::endl;
-	std::cout << "Val error: " << classification_accuracy(val_data_set, model) << std::endl;
-	std::cout << "Train error: " << classification_accuracy(train_data_set, model) << std::endl;
+	/*std::cout << "Val error: " << classification_accuracy(val_data_set, model) << std::endl;
+	std::cout << "Train error: " << classification_accuracy(train_data_set, model) << std::endl;*/
 
 	return 0;
 }

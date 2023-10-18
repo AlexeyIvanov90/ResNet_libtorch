@@ -22,12 +22,13 @@ torch::Tensor img_to_tensor(std::string path) {
 }
 
 
-std::vector<Element> read_csv(std::string& location) {
+void read_csv(std::string& location, std::vector<Element>* data, std::vector<size_t>* category_size) {
 	std::fstream in(location, std::ios::in);
 	std::string line;
 	std::string name;
 	std::string label;
-	std::vector<Element> csv;
+	data->clear();
+	category_size->clear();
 
 	while (getline(in, line))
 	{
@@ -35,22 +36,25 @@ std::vector<Element> read_csv(std::string& location) {
 		getline(s, name, ',');
 		getline(s, label, ',');
 
-		csv.push_back(Element(name, stoi(label)));
-	}
+		if (category_size->size() < stoi(label) + 1)
+			category_size->resize(stoi(label) + 1);
 
-	return csv;
+		category_size->at(stoi(label))++;
+
+		data->push_back(Element(name, stoi(label)));
+	}
 }
 
 
 CustomDataset::CustomDataset(std::string& file_names_csv) {
-	_csv = read_csv(file_names_csv);
+	read_csv(file_names_csv, &_data, &_category_size);
 }
 
 
 torch::data::Example<> CustomDataset::get(size_t index) {
 
-	std::string file_location = _csv[index].img;
-	int64_t label = _csv[index].label;
+	std::string file_location = _data[index].img;
+	int64_t label = _data[index].label;
 
 	torch::Tensor img_tensor = img_to_tensor(file_location);
 
@@ -61,11 +65,17 @@ torch::data::Example<> CustomDataset::get(size_t index) {
 }
 
 
+ void CustomDataset::get_category_size(std::vector<size_t>* category_size) {
+	category_size->resize(_category_size.size());
+	std::copy(_category_size.begin(), _category_size.end(), category_size->begin());
+}
+
+
 Element CustomDataset::get_element(size_t index) {
-	return _csv[index];
+	return _data[index];
 }
 
 
 torch::optional<size_t> CustomDataset::size() const{
-	return _csv.size();
+	return _data.size();
 };
