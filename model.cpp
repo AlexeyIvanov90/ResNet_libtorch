@@ -155,8 +155,7 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 	//torch::optim::SGD optimizer{ model->parameters(), torch::optim::SGDOptions(lr).momentum(0.9).weight_decay(1e-4) };
 
 	int dataset_size = train_data_set.size().value();
-	float best_mse = std::numeric_limits<float>::max();
-	best_mse = 15.407855;
+	float best_val_accuracy = 0.;
 
 	model->train();
 
@@ -165,7 +164,7 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 
 		size_t batch_idx = 0;
 		double train_mse = 0.;
-		double val_accuracy = DBL_MAX;
+		double val_accuracy = 0.;
 
 		for (auto& batch : *train_data_loader) {
 			auto stat = "\r" + std::to_string(int((double(batch_idx * OptionsData.batch_size()) / dataset_size) * 100)) + "%";
@@ -180,11 +179,10 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 			optimizer.zero_grad();
 			auto output = model->forward(imgs);
 
-
 			torch::Tensor weight = torch::ones(2);
 
-			weight[0] = 0.5;
-			weight[1] = 0.5;
+			weight[0] = 0.55;
+			weight[1] = 0.45;
 
 			auto loss = torch::cross_entropy_loss(output, labels, weight);
 
@@ -204,20 +202,21 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 
 		model->eval();
 		model->to(torch::kCPU);
+
 		val_accuracy = classification_accuracy(val_data_set, model);
 
 		std::string stat = "\rEpoch [" + std::to_string(epoch) + "/" +
 			std::to_string(epochs) + "] Train MSE: " + std::to_string(train_mse) +
-			" Val error: " + std::to_string(val_accuracy * 100.) + " %";
+			" Val accuracy: " + std::to_string(val_accuracy * 100.) + " %";
 
 		std::string model_file_name = "../models/epoch_" + std::to_string(epoch);
 
-		if (val_accuracy < best_mse)
+		if (val_accuracy > best_val_accuracy)
 		{
 			stat += "\nbest_model";
 			torch::save(model, "../best_model.pt");
 			model_file_name += "best_model";
-			best_mse = val_accuracy;
+			best_val_accuracy = val_accuracy;
 			count = 0;
 		}
 		else {

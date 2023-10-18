@@ -15,10 +15,10 @@ torch::Tensor classification(torch::Tensor img_tensor, ResNet model)
 }
 
 
-double classification_accuracy(CustomDataset &scr, ResNet model, bool confusion_matrix) {
+double classification_accuracy(CustomDataset &scr, ResNet model, torch::Tensor &matrix) {
 	std::vector<size_t> category_size;
 	scr.get_category_size(&category_size);
-	torch::Tensor matrix = torch::zeros({ (int)category_size.size(), (int)category_size.size() });
+	matrix = torch::zeros({ (int)category_size.size(), (int)category_size.size() });
 
 	for (int i = 0; i < scr.size().value(); i++) {
 		auto obj = scr.get(i);
@@ -33,11 +33,8 @@ double classification_accuracy(CustomDataset &scr, ResNet model, bool confusion_
 
 	double error = matrix.diag().sum().item<float>() / matrix.sum().item<float>();
 
-	if (confusion_matrix) {
-		for (int i = 0; i < category_size.size(); i++)//confusion matrix
-			matrix[i] = matrix[i].div((int)category_size.at(i));
-		std::cout << matrix << std::endl;
-	}
+	for (int i = 0; i < category_size.size(); i++)//confusion matrix
+		matrix[i] = matrix[i].div((int)category_size.at(i));
 
 	return error;
-} 
+}
