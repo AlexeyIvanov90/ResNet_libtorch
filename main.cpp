@@ -27,7 +27,7 @@ int main()
 
 	torch::load(model, "../best_model.pt");
 
-	confusion_matrix(test_data_set, model);
+	//confusion_matrix(test_data_set, model);
 	//confusion_matrix(val_data_set, model);
 	//confusion_matrix(train_data_set, model);
 	

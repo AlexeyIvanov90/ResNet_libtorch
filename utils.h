@@ -6,5 +6,4 @@
 
 
 torch::Tensor classification(torch::Tensor img_tensor, ResNet model);
-double classification_accuracy(CustomDataset &scr, ResNet model);
-torch::Tensor confusion_matrix(CustomDataset &scr, ResNet model);
+double classification_accuracy(CustomDataset &scr, ResNet model, bool confusion_matrix = false);
