@@ -5,7 +5,7 @@
 
 
 #define SIZE_IMG { 3, 200, 100 }
-#define NUM_CLASSES 2
+#define NUM_CLASSES 11
 
 
 struct BasicBlock : torch::nn::Module {

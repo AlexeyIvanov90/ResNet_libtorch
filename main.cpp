@@ -9,6 +9,7 @@ int main()
 	std::string train_file_csv = "../data_set/data_train.csv";
 	std::string val_file_csv = "../data_set/data_val.csv";
 	std::string test_file_csv = "../data_set/data_test.csv";
+	torch::Tensor accuracy;
 
 	torch::Device device("cpu");
 	size_t epochs = 100000;
@@ -27,8 +28,6 @@ int main()
 
 	torch::load(model, "../best_model.pt");
 
-	torch::Tensor accuracy;
-
 	std::cout << "Test accuracy: " << classification_accuracy(test_data_set, model, accuracy) << std::endl;
 	std::cout << accuracy << std::endl;
 
@@ -36,6 +35,7 @@ int main()
 	std::cout << accuracy << std::endl;
 
 	std::cout << "Train accuracy: " << classification_accuracy(train_data_set, model) << std::endl;
+	std::cout << accuracy << std::endl;
 
 	return 0;
 }

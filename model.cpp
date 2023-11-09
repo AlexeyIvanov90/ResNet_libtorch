@@ -155,7 +155,11 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 	//torch::optim::SGD optimizer{ model->parameters(), torch::optim::SGDOptions(lr).momentum(0.9).weight_decay(1e-4) };
 
 	int dataset_size = train_data_set.size().value();
-	float best_val_accuracy = 0.;
+	torch::Tensor accuracy;
+	float best_val_accuracy = classification_accuracy(val_data_set, model, accuracy);
+
+	std::cout << "Initial accuracy model: " + std::to_string(best_val_accuracy * 100.) + " %" << std::endl;
+	std::cout << accuracy << std::endl;
 
 	model->train();
 
@@ -179,12 +183,18 @@ void train(CustomDataset &train_data_set, CustomDataset &val_data_set, ResNet &m
 			optimizer.zero_grad();
 			auto output = model->forward(imgs);
 
-			torch::Tensor weight = torch::ones(2);
-
-			weight[0] = 0.55;
-			weight[1] = 0.45;
-
-			auto loss = torch::cross_entropy_loss(output, labels, weight);
+			//torch::Tensor weight = torch::ones(8);
+			//weight[0] = 0.54;
+			//weight[1] = 0.42;
+			//weight[2] = 0.08;
+			//weight[3] = 1.00;			
+			//weight[4] = 0.74;
+			//weight[5] = 0.53;
+			//weight[6] = 0.96;
+			//weight[7] = 0.8;
+			//auto loss = torch::cross_entropy_loss(output, labels, weight);
+			
+			auto loss = torch::cross_entropy_loss(output, labels);
 
 			loss.backward();
 			optimizer.step();
